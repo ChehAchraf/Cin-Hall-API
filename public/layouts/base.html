@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHall - {% block title %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a1a1a',
+                        secondary: '#e50914',
+                        accent: '#ffd700'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-primary text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-accent">CineHall</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/" class="hover:text-accent transition">Home</a>
+                    <a href="/movies" class="hover:text-accent transition">Movies</a>
+                    <a href="/sessions" class="hover:text-accent transition">Sessions</a>
+                    {% if user %}
+                        <a href="/reservations" class="hover:text-accent transition">My Reservations</a>
+                        <a href="/profile" class="hover:text-accent transition">Profile</a>
+                        <button onclick="logout()" class="hover:text-accent transition">Logout</button>
+                    {% else %}
+                        <a href="/login" class="hover:text-accent transition">Login</a>
+                        <a href="/register" class="hover:text-accent transition">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-accent mb-4">CineHall</h3>
+                    <p class="text-gray-300">Your premier destination for the best movie experience.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-accent mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/movies" class="hover:text-accent transition">Movies</a></li>
+                        <li><a href="/sessions" class="hover:text-accent transition">Sessions</a></li>
+                        <li><a href="/contact" class="hover:text-accent transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-accent mb-4">Contact Us</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><i class="fas fa-phone mr-2"></i> +1234567890</li>
+                        <li><i class="fas fa-envelope mr-2"></i> info@cinehall.com</li>
+                        <li><i class="fas fa-map-marker-alt mr-2"></i> 123 Movie Street, Cinema City</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-300">
+                <p>&copy; 2024 CineHall. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function logout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html> 

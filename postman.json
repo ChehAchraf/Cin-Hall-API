@@ -1,0 +1,14 @@
+// create session in post man 
+{
+    "url": "http://localhost:8000/api/session/add/1/1",
+    "method": "POST",
+    "headers": {
+        "Authorization": "Bearer {{token}}"
+    },
+    "body": {
+        "start_time": "2025-03-20 10:00:00",
+        "language": "English",
+        "price": 100,
+        "type": "2D"
+    }
+}

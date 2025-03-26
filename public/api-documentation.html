@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHall API Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a1a1a',
+                        secondary: '#e50914',
+                        accent: '#ffd700'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-primary text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="#" class="text-2xl font-bold text-accent">CineHall API</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#authentication" class="hover:text-accent transition">Authentication</a>
+                    <a href="#movies" class="hover:text-accent transition">Movies</a>
+                    <a href="#sessions" class="hover:text-accent transition">Sessions</a>
+                    <a href="#halls" class="hover:text-accent transition">Halls</a>
+                    <a href="#seats" class="hover:text-accent transition">Seats</a>
+                    <a href="#reservations" class="hover:text-accent transition">Reservations</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Introduction -->
+        <section class="mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">CineHall API Documentation</h1>
+            <p class="text-gray-600">Welcome to the CineHall API documentation. This guide will help you understand and integrate with our cinema management system.</p>
+        </section>
+
+        <!-- Authentication -->
+        <section id="authentication" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Authentication</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Login</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">POST /api/login</code></p>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="font-semibold mb-2">Request Body:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "email": "user@example.com",
+    "password": "password123"
+}</pre>
+                    </div>
+                    <div class="mt-4">
+                        <p class="font-semibold mb-2">Response:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "token": "your_jwt_token",
+    "user": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "user@example.com"
+    }
+}</pre>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4">Register</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">POST /api/register</code></p>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="font-semibold mb-2">Request Body:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "name": "John Doe",
+    "email": "user@example.com",
+    "password": "password123",
+    "phone": "1234567890"
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Movies -->
+        <section id="movies" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Movies</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Get All Movies</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">GET /api/movies</code></p>
+                    <div class="mt-4">
+                        <p class="font-semibold mb-2">Response:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "id": 1,
+    "title": "Movie Title",
+    "description": "Movie Description",
+    "duration": 120,
+    "genre": "Action",
+    "release_date": "2024-03-20",
+    "poster_url": "path/to/poster.jpg"
+}</pre>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4">Get Movie Details</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">GET /api/movies/{id}</code></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sessions -->
+        <section id="sessions" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Sessions</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Get All Sessions</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">GET /api/sessions</code></p>
+                    <div class="mt-4">
+                        <p class="font-semibold mb-2">Response:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "id": 1,
+    "movie_name": "Movie Title",
+    "hall_name": "Hall 1",
+    "start_time": "2024-03-20 10:00:00",
+    "language": "EN",
+    "type": "normal"
+}</pre>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4">Get Session Details</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">GET /api/sessions/{id}</code></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Halls -->
+        <section id="halls" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Halls</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Get All Halls</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">GET /api/halls</code></p>
+                    <div class="mt-4">
+                        <p class="font-semibold mb-2">Response:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "id": 1,
+    "name": "Hall 1",
+    "capacity": 100,
+    "type": "VIP"
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seats -->
+        <section id="seats" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Seats</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Create Seats</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">POST /api/seats</code></p>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="font-semibold mb-2">Request Body:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "hall_id": 1,
+    "start_number": 1,
+    "end_number": 10,
+    "status": "available"
+}</pre>
+                    </div>
+                    <div class="mt-4">
+                        <p class="font-semibold mb-2">Response:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "message": "Seats created successfully",
+    "data": [
+        {
+            "id": 1,
+            "hall_id": 1,
+            "seat_number": 1,
+            "status": "available"
+        }
+        // ... more seats
+    ]
+}</pre>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4">Get Seats by Hall</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">GET /api/seats/hall/{hallId}</code></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reservations -->
+        <section id="reservations" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Reservations</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Create Reservation</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">POST /api/reservations/add/{session_id}/{seat_ids}</code></p>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="font-semibold mb-2">Request Body:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "status": "pending"
+}</pre>
+                    </div>
+                    <div class="mt-4">
+                        <p class="font-semibold mb-2">Response:</p>
+                        <pre class="bg-gray-100 p-4 rounded overflow-x-auto">
+{
+    "id": 1,
+    "user_id": 1,
+    "session_id": 1,
+    "status": "pending",
+    "seats": [...],
+    "session": {...},
+    "user": {...},
+    "tickets": [...]
+}</pre>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4">Get User Reservations</h3>
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">Endpoint: <code class="bg-gray-100 px-2 py-1 rounded">GET /api/reservations/user/{userId}</code></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error Handling -->
+        <section class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Error Handling</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <p class="text-gray-600 mb-4">The API uses standard HTTP response codes:</p>
+                <ul class="list-disc list-inside space-y-2">
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">200</code> - Success</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">201</code> - Created</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">400</code> - Bad Request</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">401</code> - Unauthorized</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">404</code> - Not Found</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">500</code> - Server Error</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="text-center">
+                <p>&copy; 2024 CineHall API. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 

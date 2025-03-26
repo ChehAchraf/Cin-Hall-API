@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHall - Sessions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a1a1a',
+                        secondary: '#e50914',
+                        accent: '#ffd700'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-primary text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-accent">CineHall</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/" class="hover:text-accent transition">Home</a>
+                    <a href="/movies" class="hover:text-accent transition">Movies</a>
+                    <a href="/sessions" class="hover:text-accent transition">Sessions</a>
+                    <a href="/reservations" class="hover:text-accent transition">My Reservations</a>
+                    <a href="/profile" class="hover:text-accent transition">Profile</a>
+                    <button onclick="logout()" class="hover:text-accent transition">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sessions Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900">Available Sessions</h1>
+            <div class="flex space-x-4">
+                <input type="date" id="dateFilter" 
+                    class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent">
+                <select id="hallFilter" 
+                    class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent">
+                    <option value="">All Halls</option>
+                    <!-- Halls will be loaded dynamically -->
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="sessionsGrid">
+            <!-- Sessions will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-accent mb-4">CineHall</h3>
+                    <p class="text-gray-300">Your premier destination for the best movie experience.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-accent mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/movies" class="hover:text-accent transition">Movies</a></li>
+                        <li><a href="/sessions" class="hover:text-accent transition">Sessions</a></li>
+                        <li><a href="/contact" class="hover:text-accent transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-accent mb-4">Contact Us</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><i class="fas fa-phone mr-2"></i> +1234567890</li>
+                        <li><i class="fas fa-envelope mr-2"></i> info@cinehall.com</li>
+                        <li><i class="fas fa-map-marker-alt mr-2"></i> 123 Movie Street, Cinema City</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-300">
+                <p>&copy; 2024 CineHall. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        // Load halls for filter
+        function loadHalls() {
+            fetch('/api/halls', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => response.json())
+            .then(halls => {
+                const hallFilter = document.getElementById('hallFilter');
+                halls.forEach(hall => {
+                    hallFilter.innerHTML += `
+                        <option value="${hall.id}">${hall.name}</option>
+                    `;
+                });
+            })
+            .catch(error => console.error('Error loading halls:', error));
+        }
+
+        // Load all sessions
+        function loadSessions() {
+            fetch('/api/session/all', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => response.json())
+            .then(sessions => {
+                const sessionsGrid = document.getElementById('sessionsGrid');
+                sessionsGrid.innerHTML = '';
+                sessions.forEach(session => {
+                    const startTime = new Date(session.start_time);
+                    sessionsGrid.innerHTML += `
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-semibold text-gray-900">${session.movie.title}</h3>
+                                <span class="px-3 py-1 text-sm rounded-full ${
+                                    session.type === 'vip' ? 'bg-accent text-primary' : 'bg-gray-200 text-gray-700'
+                                }">
+                                    ${session.type.toUpperCase()}
+                                </span>
+                            </div>
+                            <div class="space-y-2 text-gray-600">
+                                <p><i class="fas fa-calendar-alt mr-2"></i>${startTime.toLocaleDateString()}</p>
+                                <p><i class="fas fa-clock mr-2"></i>${startTime.toLocaleTimeString()}</p>
+                                <p><i class="fas fa-film mr-2"></i>${session.hall.name}</p>
+                                <p><i class="fas fa-language mr-2"></i>${session.language}</p>
+                            </div>
+                            <div class="mt-6">
+                                <a href="/sessions/${session.id}" 
+                                    class="block w-full text-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                                    Book Now
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+            })
+            .catch(error => console.error('Error loading sessions:', error));
+        }
+
+        // Date filter
+        document.getElementById('dateFilter').addEventListener('change', function(e) {
+            const selectedDate = e.target.value;
+            const sessionCards = document.querySelectorAll('#sessionsGrid > div');
+            
+            sessionCards.forEach(card => {
+                const date = card.querySelector('p:first-of-type').textContent;
+                if (!selectedDate || date.includes(selectedDate)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Hall filter
+        document.getElementById('hallFilter').addEventListener('change', function(e) {
+            const selectedHall = e.target.value;
+            const sessionCards = document.querySelectorAll('#sessionsGrid > div');
+            
+            sessionCards.forEach(card => {
+                const hall = card.querySelector('p:nth-of-type(3)').textContent;
+                if (!selectedHall || hall.includes(selectedHall)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Initial load
+        loadHalls();
+        loadSessions();
+
+        function logout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html> 

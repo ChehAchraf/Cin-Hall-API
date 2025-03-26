@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شرح Repository Pattern بالدارجة المغربية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8 text-indigo-600">شرح Repository Pattern بالدارجة المغربية</h1>
+        
+        <!-- المقدمة -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">شنو هو Repository Pattern؟</h2>
+            <p class="text-gray-600 leading-relaxed">
+                خويا، Repository Pattern هو طريقة لتنظيم الكود ديالك باش يكون أكثر تنظيماً وأسهل للصيانة. 
+                ببساطة، هو كيقسم الكود ديالك لـ 3 أجزاء:
+            </p>
+            <ul class="list-disc list-inside mt-4 text-gray-600">
+                <li>Interface (الواجهة)</li>
+                <li>Repository (التنفيذ)</li>
+                <li>Controller (المتحكم)</li>
+            </ul>
+        </div>
+
+        <!-- مثال عملي -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">مثال عملي: نظام تسجيل الدخول</h2>
+            
+            <!-- Interface -->
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-2 text-indigo-600">1. Interface (الواجهة)</h3>
+                <pre class="bg-gray-800 text-white p-4 rounded-lg overflow-x-auto">
+interface AuthRepositoryInterface {
+    public function login(array $credentials);
+    public function register(array $data);
+    public function logout();
+    public function refresh();
+    public function user();
+}</pre>
+                <p class="mt-2 text-gray-600">
+                    هاد الواجهة كتعرف ليك شنو لي لازم يكون عندك من فنكسيونات. 
+                    هي كالكونترا ديالك: "خويا، لازم تكون عندك هاد الفنكسيونات باش نعرف نتعامل معاك"
+                </p>
+            </div>
+
+            <!-- Repository -->
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-2 text-indigo-600">2. Repository (التنفيذ)</h3>
+                <pre class="bg-gray-800 text-white p-4 rounded-lg overflow-x-auto">
+class AuthRepository implements AuthRepositoryInterface {
+    public function login(array $credentials) {
+        // التحقق من البيانات
+        // محاولة تسجيل الدخول
+        // إرجاع النتيجة
+    }
+    
+    public function register(array $data) {
+        // التحقق من البيانات
+        // إنشاء المستخدم
+        // إرجاع النتيجة
+    }
+    
+    // باقي الفنكسيونات...
+}</pre>
+                <p class="mt-2 text-gray-600">
+                    هاد الكلاس هو لي كينفذ الواجهة ديالك. هو لي كيعمل الشغل الحقيقي:
+                    كيتحقق من البيانات، كيسجل الدخول، كيسجل المستخدمين الجدد، إلخ...
+                </p>
+            </div>
+
+            <!-- Controller -->
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-2 text-indigo-600">3. Controller (المتحكم)</h3>
+                <pre class="bg-gray-800 text-white p-4 rounded-lg overflow-x-auto">
+class AuthController {
+    protected $authRepository;
+    
+    public function __construct(AuthRepositoryInterface $authRepository) {
+        $this->authRepository = $authRepository;
+    }
+    
+    public function login(Request $request) {
+        return $this->authRepository->login($request->all());
+    }
+}</pre>
+                <p class="mt-2 text-gray-600">
+                    المتحكم هو لي كيتعامل مع الطلبات ديالك. هو كيستدعي Repository باش يعمل الشغل.
+                    هو كالوسيط بين المستخدم وRepository.
+                </p>
+            </div>
+        </div>
+
+        <!-- مميزات النمط -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">شنو المميزات ديال هاد النمط؟</h2>
+            <ul class="list-disc list-inside text-gray-600">
+                <li class="mb-2">تنظيم الكود: كل حاجة فبلاصتها</li>
+                <li class="mb-2">سهولة التغيير: يمكنك تغيير التنفيذ بسهولة</li>
+                <li class="mb-2">إعادة استخدام الكود: يمكنك استخدام نفس الكود فبلاصات مختلفة</li>
+                <li class="mb-2">سهولة الاختبار: يمكنك اختبار كل جزء على حدة</li>
+                <li class="mb-2">فصل المنطق: كل كلاس عندو دور محدد</li>
+            </ul>
+        </div>
+
+        <!-- مثال عملي من المشروع -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">مثال من المشروع ديالك</h2>
+            <p class="text-gray-600 mb-4">
+                فالمشروع ديالك، استخدمنا هاد النمط فـ AuthRepository باش ننظمو عملية تسجيل الدخول.
+                هادشي خلا لينا:
+            </p>
+            <ul class="list-disc list-inside text-gray-600">
+                <li class="mb-2">كود نظيف ومنظم</li>
+                <li class="mb-2">سهولة تغيير طريقة تسجيل الدخول (مثلاً: من JWT لـ OAuth)</li>
+                <li class="mb-2">سهولة إضافة ميزات جديدة</li>
+                <li class="mb-2">سهولة اختبار الكود</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html> 
