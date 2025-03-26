@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use App\Repositories\Interfaces\ReservationRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Srmklive\PayPal\Services\PayPal as PayPalClient;
+
 
 class ReservationController extends Controller
 {
@@ -25,91 +27,194 @@ class ReservationController extends Controller
     public function index()
     {
         $reservations = $this->reservationRepository->all();
-        return response()->json($reservations);
+        return response()->json([
+            'status' => true,
+            'data' => $reservations
+        ]);
     }
 
     public function show($id)
     {
         $reservation = $this->reservationRepository->find($id);
         if (!$reservation) {
-            return response()->json(['message' => 'Reservation not found'], 404);
+            return response()->json([
+                'status' => false,
+                'message' => 'Reservation not found'
+            ], 404);
         }
-        return response()->json($reservation);
+        return response()->json([
+            'status' => true,
+            'data' => $reservation
+        ]);
     }
 
     public function store(Request $request, $session_id, $seat_ids)
     {
         try {
-            // Validate the request
-            $validatedData = $request->validate([
-                'status' => 'required|string|in:pending,confirmed,cancelled'
-            ]);
-
-            // Get the authenticated user
-            $user = Auth::user();
-            if (!$user) {
-                return response()->json(['message' => 'Unauthorized'], 401);
-            }
-
             // Check if session exists
-            $session = Session::find($session_id);
-            if (!$session) {
-                return response()->json(['message' => 'Session not found'], 404);
+            if (!$this->reservationRepository->checkSessionExists($session_id)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Session not found'
+                ], 404);
             }
 
-            // Validate seat IDs
-            $seatIds = explode(',', $seat_ids);
-            if (empty($seatIds)) {
-                return response()->json(['message' => 'No seats selected'], 400);
-            }
+            // Convert comma-separated seat IDs to array
+            $seatIdsArray = explode(',', $seat_ids);
 
             // Check if seats exist
-            $seats = Seat::whereIn('id', $seatIds)->get();
-            if ($seats->count() !== count($seatIds)) {
-                return response()->json(['message' => 'One or more seats not found'], 404);
+            $seats = $this->reservationRepository->getSeatsByIds($seatIdsArray);
+            if (count($seats) !== count($seatIdsArray)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'One or more seats not found'
+                ], 404);
             }
 
-            // Prepare the data for the repository
-            $data = array_merge($validatedData, [
-                'user_id' => $user->id,
+            // Check if seats are available
+            if (!$this->reservationRepository->areSeatsAvailable($seatIdsArray, $session_id)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'One or more seats are already reserved'
+                ], 400);
+            }
+
+            // Create reservation
+            $reservation = $this->reservationRepository->create([
+                'user_id' => Auth::id(),
                 'session_id' => $session_id,
-                'seats' => $seatIds
+                'seats' => $seatIdsArray,
+                'status' => 'pending'
             ]);
 
-            // Create the reservation using the repository
-            $reservation = $this->reservationRepository->create($data);
-            
-            return response()->json($reservation, 201);
+            // Generate PayPal payment link
+            $provider = new PayPalClient;
+            $provider->setApiCredentials(config('paypal'));
+            $provider->getAccessToken();
+
+            $total = count($seatIdsArray) * $reservation->session->price;
+
+            $order = $provider->createOrder([
+                "intent" => "CAPTURE",
+                "purchase_units" => [
+                    [
+                        "amount" => [
+                            "currency_code" => "USD",
+                            "value" => $total
+                        ],
+                        "description" => "Movie Tickets Reservation #" . $reservation->id
+                    ]
+                ],
+                "application_context" => [
+                    "cancel_url" => route('payment.cancel', $reservation->id),
+                    "return_url" => route('payment.success', $reservation->id)
+                ]
+            ]);
+
+            // Add payment link to response
+            $reservation->payment_link = $order['links'][1]['href'];
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Reservation created successfully',
+                'data' => $reservation,
+                'payment_link' => $order['links'][1]['href']
+            ], 201);
+
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+            return response()->json([
+                'status' => false,
+                'message' => 'Error creating reservation',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     public function update(Request $request, $id)
     {
-        $reservation = $this->reservationRepository->update($id, $request->all());
-        return response()->json($reservation);
+        $result = $this->reservationRepository->update($id, $request->all());
+        return response()->json($result);
     }
 
     public function destroy($id)
     {
-        $reservation = $this->reservationRepository->delete($id);
-        return response()->json(null, 204);
+        $result = $this->reservationRepository->delete($id);
+        return response()->json($result);
     }
 
     public function getUserReservations($userId)
     {
         $reservations = $this->reservationRepository->getUserReservations($userId);
-        return response()->json($reservations);
+        return response()->json([
+            'status' => true,
+            'data' => $reservations
+        ]);
     }
 
     public function getReservationSeats($id)
     {
-        $reservation = $this->reservationRepository->find($id);
-        if (!$reservation) {
-            return response()->json(['message' => 'Reservation not found'], 404);
+        $seats = $this->reservationRepository->getReservationSeats($id);
+        return response()->json([
+            'status' => true,
+            'data' => $seats
+        ]);
+    }
+
+    public function handlePaymentSuccess(Request $request, $reservation_id)
+    {
+        try {
+            $provider = new PayPalClient;
+            $provider->setApiCredentials(config('paypal'));
+            $provider->getAccessToken();
+
+            $order = $provider->capturePaymentOrder($request->token);
+
+            if ($order['status'] === "COMPLETED") {
+                // Update reservation status
+                $this->reservationRepository->update($reservation_id, [
+                    'status' => 'paid',
+                    'payment_id' => $order['id']
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Payment successful'
+                ]);
+            }
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Payment failed'
+            ], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error processing payment',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        $seats = $reservation->seats;
-        return response()->json($seats);
+    }
+
+    public function handlePaymentCancel($reservation_id)
+    {
+        try {
+            // Update reservation status to cancelled
+            $this->reservationRepository->update($reservation_id, [
+                'status' => 'cancelled'
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Payment cancelled'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error cancelling payment',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

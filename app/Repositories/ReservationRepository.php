@@ -91,18 +91,24 @@ class ReservationRepository implements ReservationRepositoryInterface
 
     public function checkSessionExists($sessionId)
     {
-        return $this->model->where('session_id', $sessionId)->exists();
+        return DB::table('sessions')->where('id', $sessionId)->exists();
     }
 
     public function getSeatsByIds(array $seatIds)
     {
-        return $this->model->where('seats.id', $seatIds)->get();
+        return DB::table('seats')->whereIn('id', $seatIds)->get();
     }
 
     public function areSeatsAvailable(array $seatIds, $sessionId)
     {
-        return $this->model->where('seats.id', $seatIds)
-            ->where('session_id', $sessionId)
-            ->exists();
+        // Get count of seats that are already reserved for this session
+        $reservedCount = DB::table('reservations_seats')
+            ->join('reservations', 'reservations.id', '=', 'reservations_seats.reservation_id')
+            ->where('reservations.session_id', $sessionId)
+            ->whereIn('reservations_seats.seat_id', $seatIds)
+            ->count();
+        
+        // If no seats are reserved, they are all available
+        return $reservedCount === 0;
     }
 }

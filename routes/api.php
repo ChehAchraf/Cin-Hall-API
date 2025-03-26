@@ -8,6 +8,8 @@ use App\Http\Controllers\API\HallController;
 use App\Http\Controllers\API\ReservationController;
 use App\Http\Controllers\API\SessionController;
 use App\Http\Controllers\API\SeatController;
+use App\Http\Controllers\PayPalController;
+use App\Models\Reservation;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +64,7 @@ Route::middleware('auth:api')->prefix('reservations')->group(function () {
     Route::get('/user/{userId}', [ReservationController::class, 'getUserReservations']);
     Route::get('/{id}/seats', [ReservationController::class, 'getReservationSeats']);
 });
+Route::get('create-transaction', [ReservationController::class, 'processTransaction'])->name('createTransaction');
 
 // the sessions routing
 
@@ -91,3 +94,13 @@ Route::middleware(['auth:api', 'role:admin'])->get('/admin/data', function () {
 });
 
 Route::middleware('auth:api')->post('logout', [AuthController::class, 'logout']);
+
+// Route::get('create-transaction', [PayPalController::class, 'createTransaction'])->name('createTransaction');
+// Route::get('process-transaction', [PayPalController::class, 'processTransaction'])->name('processTransaction');
+// Route::get('success-transaction', [PayPalController::class, 'successTransaction'])->name('successTransaction');
+// Route::get('cancel-transaction', [PayPalController::class, 'cancelTransaction'])->name('cancelTransaction');
+
+// Payment Routes
+
+    Route::get('payment/success/{reservation_id}', [ReservationController::class, 'handlePaymentSuccess'])->name('payment.success');
+    Route::get('payment/cancel/{reservation_id}', [ReservationController::class, 'handlePaymentCancel'])->name('payment.cancel');
